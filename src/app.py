@@ -234,6 +234,7 @@ app.layout = dbc.Container([
             
         dash_table.DataTable(
             id='correlation-table',
+            sort_action="native",
             columns=[
                 {"name": "", "id": "etf"}, 
                 {"name": "Correlation", "id": "correlation"}, 
