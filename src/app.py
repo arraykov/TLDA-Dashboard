@@ -1,6 +1,7 @@
 import dash
 from dash import dcc, html, Input, Output, dash_table
 import dash_bootstrap_components as dbc
+import dash_daq as daq
 import pandas as pd
 import sqlite3
 import dash_ag_grid as dag
@@ -185,12 +186,12 @@ external_stylesheets = ['custom.css', dbc.themes.BOOTSTRAP]
 app = dash.Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=external_stylesheets)
 server = app.server
 
-def generate_dashboard():
+def generate_dashboard(height='370px'):
     table = dag.AgGrid(
         id='table',
         columnDefs=columnDefs,
         rowData=all_data.to_dict('records'),
-        style={"height": "370px", "width": "100%"},
+        style={"height": height, "width": "100%"},
         columnSize="responsiveSizeToFit",
         defaultColDef=defaultColDef,
         dashGridOptions={
@@ -218,10 +219,25 @@ def create_styled_empty_plot(title, yaxis_title):
     return fig
 
 app.layout = dbc.Container([
+    # Toggle control for showing/hiding plots with labels
+    dbc.Row([
+        dbc.Col([
+            html.Div([
+                html.Span("Compact View", style={'float': 'left', 'margin-top': '5px','color': '#FBEAEB'}),
+                daq.ToggleSwitch(
+                    id='toggle-plots',
+                    value=True,
+                    style={'display': 'inline-block', 'margin': '0 10px'}
+                ),
+                html.Span("Arbitrage View", style={'float': 'right', 'margin-top': '5px','color': '#FBEAEB'})
+            ], style={'textAlign': 'center', 'padding': '10px'})
+        ], width={"size": 6, "offset": 3}),
+    ]),
+
     # First row with AG Grid table
     dbc.Row([
         dbc.Col([
-            generate_dashboard(),  # AG Grid table
+            html.Div(id='dashboard-table-container', children=[generate_dashboard()])
         ]),
     ]),
 
@@ -232,42 +248,44 @@ app.layout = dbc.Container([
             # Scatter plot
             dcc.Graph(id='scatter-plot', figure=create_styled_empty_plot('', 'ETF Daily Returns')),
             
-        dash_table.DataTable(
-            id='correlation-table',
-            sort_action="native",
-            columns=[
-                {"name": "", "id": "etf"}, 
-                {"name": "Correlation", "id": "correlation"}, 
-                {"name": "Beta", "id": "beta"}, 
-                {"name": "R Squared", "id": "r_squared"}
-            ],
-            style_table={'height': '350px', 'overflowY': 'auto'},
-            style_data={
-                'border': '1px solid rgba(251, 234, 235, 0.5)'  # 50% transparent border color
-            },
-            style_cell={
-                'textAlign': 'center', 
-                'backgroundColor': '#041619', 
-                'color': '#FBEAEB',
-            },
-            style_cell_conditional=[
-                {'if': {'column_id': 'etf'},
-                'width': '10%'},  # Adjust width as needed for ETF column
-                {'if': {'column_id': 'correlation'},
-                'width': '30%'},
-                {'if': {'column_id': 'beta'},
-                'width': '30%'},
-                {'if': {'column_id': 'r_squared'},
-                'width': '30%'}
-            ],
-            style_header={
-                'backgroundColor': '#041619', 
-                'color': '#FBEAEB', 
-                'fontWeight': 'bold',
-            },
-            row_selectable='single',  
-        ),
-        ], width=6),
+            # Div wrapping the Correlation table
+            html.Div(
+                id='correlation-table-container',  # New ID for the Div
+                children=[
+                    dash_table.DataTable(
+                        id='correlation-table',
+
+                columns=[
+                    {"name": "", "id": "etf"}, 
+                    {"name": "Correlation", "id": "correlation"}, 
+                    {"name": "Beta", "id": "beta"}, 
+                    {"name": "R Squared", "id": "r_squared"}
+                ],
+                style_table={'height': '350px', 'overflowY': 'auto'},
+                style_data={
+                    'border': '1px solid rgba(251, 234, 235, 0.5)'
+                },
+                style_cell={
+                    'textAlign': 'center', 
+                    'backgroundColor': '#041619', 
+                    'color': '#FBEAEB',
+                },
+                style_cell_conditional=[
+                    {'if': {'column_id': 'etf'}, 'width': '10%'},
+                    {'if': {'column_id': 'correlation'}, 'width': '30%'},
+                    {'if': {'column_id': 'beta'}, 'width': '30%'},
+                    {'if': {'column_id': 'r_squared'}, 'width': '30%'}
+                ],
+                style_header={
+                    'backgroundColor': '#041619', 
+                    'color': '#FBEAEB', 
+                    'fontWeight': 'bold',
+                },
+                row_selectable='single',  
+                )
+            ]
+        )
+    ], width=6),
 
         # Column for line charts
         dbc.Col([
@@ -276,8 +294,33 @@ app.layout = dbc.Container([
         ], width=6),
     ]),
 
-    html.Div(id="selection-output")  
+    html.Div(id="selection-output")
 ], fluid=True)
+
+@app.callback(
+    [Output('scatter-plot', 'style'), 
+     Output('premium-discount-chart', 'style'),
+     Output('correlation-table-container', 'style'), 
+     Output('line-chart', 'style')],
+    [Input('toggle-plots', 'value')]
+)
+
+def toggle_plot_visibility(is_visible):
+    if is_visible:
+        return {'display': 'block'}, {'display': 'block'}, {'display': 'block'}, {'display': 'block'}
+    else:
+        return {'display': 'none'}, {'display': 'none'}, {'display': 'none'}, {'display': 'none'}
+
+@app.callback(
+    Output('dashboard-table-container', 'children'),
+    [Input('toggle-plots', 'value')]
+)
+
+def update_table_layout(is_visible):
+    if is_visible:
+        return generate_dashboard(height='370px')
+    else:
+        return generate_dashboard(height='90vh')
 
 def fetch_and_plot_z_score(conn, ticker):
     z_score_query = f"SELECT Date, `1Y Z` FROM {ticker}_Statistics ORDER BY Date"
