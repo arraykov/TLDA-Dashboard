@@ -186,7 +186,7 @@ external_stylesheets = ['custom.css', dbc.themes.BOOTSTRAP]
 app = dash.Dash(__name__, suppress_callback_exceptions=True, external_stylesheets=external_stylesheets)
 server = app.server
 
-def generate_dashboard(height='370px'):
+def generate_dashboard(height='190px'):
     table = dag.AgGrid(
         id='table',
         columnDefs=columnDefs,
@@ -319,7 +319,7 @@ def toggle_plot_visibility(is_visible):
 
 def update_table_layout(is_visible):
     if is_visible:
-        return generate_dashboard(height='370px')
+        return generate_dashboard(height='190px')
     else:
         return generate_dashboard(height='90vh')
 
