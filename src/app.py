@@ -265,6 +265,7 @@ app.layout = dbc.Container([
                 style_data={
                     'border': '1px solid rgba(251, 234, 235, 0.5)'
                 },
+                sort_action="native",
                 style_cell={
                     'textAlign': 'center', 
                     'backgroundColor': '#041619', 
