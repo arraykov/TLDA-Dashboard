@@ -226,7 +226,7 @@ app.layout = dbc.Container([
                 html.Span("Compact View", style={'float': 'left', 'margin-top': '5px','color': '#FBEAEB'}),
                 daq.ToggleSwitch(
                     id='toggle-plots',
-                    value=True,
+                    value=False,
                     style={'display': 'inline-block', 'margin': '0 10px'}
                 ),
                 html.Span("Arbitrage View", style={'float': 'right', 'margin-top': '5px','color': '#FBEAEB'})
