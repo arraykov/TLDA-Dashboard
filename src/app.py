@@ -229,7 +229,7 @@ app.layout = dbc.Container([
                     value=False,
                     style={'display': 'inline-block', 'margin': '0 10px'}
                 ),
-                html.Span("Arbitrage View", style={'float': 'right', 'margin-top': '5px','color': '#FBEAEB'})
+                html.Span("Expanded View", style={'float': 'right', 'margin-top': '5px','color': '#FBEAEB'})
             ], style={'textAlign': 'center', 'padding': '10px'})
         ], width={"size": 6, "offset": 3}),
     ]),
