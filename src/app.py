@@ -246,7 +246,7 @@ app.layout = dbc.Container([
         # Column for scatter plot and correlation table
         dbc.Col([
             # Scatter plot
-            dcc.Graph(id='scatter-plot', figure=create_styled_empty_plot('', 'ETF Daily Returns'), style={'height': '40vh', 'width': '100%'}),
+            dcc.Graph(id='scatter-plot', figure=create_styled_empty_plot('', 'ETF Daily Returns'), style={'height': '50%', 'width': '100%'}),
             
             # Div wrapping the Correlation table
             html.Div(
@@ -263,7 +263,7 @@ app.layout = dbc.Container([
                     {"name": "Hedge Ratio", "id": "hedge_ratio_volatility"}
                 ],
                 sort_action="native",
-                style_table={'height': '350px', 'overflowY': 'auto'},
+                style_table={'height': '35vh', 'overflowY': 'auto'},
                 style_data={
                     'border': '1px solid rgba(251, 234, 235, 0.5)'
                 },
@@ -291,10 +291,10 @@ app.layout = dbc.Container([
     ], width=6),
 
     dbc.Col([
-        dcc.Graph(id='line-chart', style={'height': '40vh', 'width': '100%'}),
-        dcc.Graph(id='premium-discount-chart', style={'height': '40vh', 'width': '100%'}),
+        dcc.Graph(id='line-chart', style={'height': '35vh', 'width': '100%'}),
+        dcc.Graph(id='premium-discount-chart', style={'height': '35vh', 'width': '100%'}),
     ], width=6),
-    ]),
+    ], align="stretch"),
 
     html.Div(id="selection-output")
 ], fluid=True)
