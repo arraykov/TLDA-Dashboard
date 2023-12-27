@@ -246,7 +246,7 @@ app.layout = dbc.Container([
         # Column for scatter plot and correlation table
         dbc.Col([
             # Scatter plot
-            dcc.Graph(id='scatter-plot', figure=create_styled_empty_plot('', 'ETF Daily Returns')),
+            dcc.Graph(id='scatter-plot', figure=create_styled_empty_plot('', 'ETF Daily Returns'), style={'height': '40vh', 'width': '100%'}),
             
             # Div wrapping the Correlation table
             html.Div(
@@ -256,16 +256,17 @@ app.layout = dbc.Container([
                         id='correlation-table',
 
                 columns=[
-                    {"name": "", "id": "etf"}, 
+                    {"name": "", "id": "etf", }, 
                     {"name": "Correlation", "id": "correlation"}, 
                     {"name": "Beta", "id": "beta"}, 
-                    {"name": "R Squared", "id": "r_squared"}
+                    {"name": "R Squared", "id": "r_squared"},
+                    {"name": "Hedge Ratio", "id": "hedge_ratio_volatility"}
                 ],
+                sort_action="native",
                 style_table={'height': '350px', 'overflowY': 'auto'},
                 style_data={
                     'border': '1px solid rgba(251, 234, 235, 0.5)'
                 },
-                sort_action="native",
                 style_cell={
                     'textAlign': 'center', 
                     'backgroundColor': '#041619', 
@@ -273,9 +274,10 @@ app.layout = dbc.Container([
                 },
                 style_cell_conditional=[
                     {'if': {'column_id': 'etf'}, 'width': '10%'},
-                    {'if': {'column_id': 'correlation'}, 'width': '30%'},
-                    {'if': {'column_id': 'beta'}, 'width': '30%'},
-                    {'if': {'column_id': 'r_squared'}, 'width': '30%'}
+                    {'if': {'column_id': 'correlation'}, 'width': '22.5%'},
+                    {'if': {'column_id': 'beta'}, 'width': '22.5%'},
+                    {'if': {'column_id': 'r_squared'}, 'width': '22.5%'},
+                    {'if': {'column_id': 'hedge_ratio_volatility'}, 'width': '22.5%'}
                 ],
                 style_header={
                     'backgroundColor': '#041619', 
@@ -288,11 +290,10 @@ app.layout = dbc.Container([
         )
     ], width=6),
 
-        # Column for line charts
-        dbc.Col([
-            dcc.Graph(id='line-chart', figure=create_styled_empty_plot('', '')),
-            dcc.Graph(id='premium-discount-chart', figure=create_styled_empty_plot('Premium/Discount Chart', 'Premium/Discount (%)')),
-        ], width=6),
+    dbc.Col([
+        dcc.Graph(id='line-chart', style={'height': '40vh', 'width': '100%'}),
+        dcc.Graph(id='premium-discount-chart', style={'height': '40vh', 'width': '100%'}),
+    ], width=6),
     ]),
 
     html.Div(id="selection-output")
@@ -474,7 +475,21 @@ def calculate_top_10_correlations(cef_nav_data, conn):
         correlation = round(np.corrcoef(X.flatten(), y)[0, 1], 2)
         beta = round(model.params[1], 2)
         r_squared = round(model.rsquared, 2)
-        correlations.append({'etf': ticker, 'correlation': correlation, 'beta': beta, 'r_squared': r_squared})
+        
+        # Calculate annualized volatilities
+        etf_annual_volatility = group['ETF_Return'].std() * np.sqrt(252)
+        nav_annual_volatility = group['NAV_Return'].std() * np.sqrt(252)
+        
+        # Calculate hedge ratio based on annualized volatilities
+        hedge_ratio_volatility = nav_annual_volatility / etf_annual_volatility if etf_annual_volatility != 0 else np.nan
+
+        correlations.append({
+            'etf': ticker,
+            'correlation': correlation,
+            'beta': beta,
+            'r_squared': r_squared,
+            'hedge_ratio_volatility': round(hedge_ratio_volatility, 2) if not np.isnan(hedge_ratio_volatility) else None
+        })
 
     top_10 = sorted(correlations, key=lambda x: x['correlation'], reverse=True)[:10]
     return top_10
