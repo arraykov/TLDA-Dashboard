@@ -218,40 +218,28 @@ def create_styled_empty_plot(title, yaxis_title):
     )
     return fig
 
-app.layout = dbc.Container([
-    # Toggle control for showing/hiding plots with labels
+dashboard_height = 190
+
+plot_height_vh = (100 - (dashboard_height / 9)) / 2  # Convert 150px to vh (approx.), then split the remaining space
+
+# Define the layout for the first page
+page_1_layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             html.Div([
                 html.Span("Compact View", style={'float': 'left', 'margin-top': '5px','color': '#FBEAEB'}),
-                daq.ToggleSwitch(
-                    id='toggle-plots',
-                    value=False,
-                    style={'display': 'inline-block', 'margin': '0 10px'}
-                ),
+                daq.ToggleSwitch(id='toggle-plots', value=False, style={'display': 'inline-block', 'margin': '0 10px'}),
                 html.Span("Expanded View", style={'float': 'right', 'margin-top': '5px','color': '#FBEAEB'})
             ], style={'textAlign': 'center', 'padding': '10px'})
         ], width={"size": 6, "offset": 3}),
     ]),
-
-    # First row with AG Grid table
     dbc.Row([
-        dbc.Col([
-            html.Div(id='dashboard-table-container', children=[generate_dashboard()])
-        ]),
+        dbc.Col(html.Div(id='dashboard-table-container', children=[generate_dashboard()])),
     ]),
-
-    # Second row with scatter plot, correlation table, and line charts
     dbc.Row([
-        # Column for scatter plot and correlation table
         dbc.Col([
-            # Scatter plot
-            dcc.Graph(id='scatter-plot', figure=create_styled_empty_plot('', 'ETF Daily Returns'), style={'height': '50%', 'width': '100%'}),
-            
-            # Div wrapping the Correlation table
-            html.Div(
-                id='correlation-table-container',  # New ID for the Div
-                children=[
+            dcc.Graph(id='scatter-plot', figure=create_styled_empty_plot('', 'ETF Daily Returns'), style={'height': f'{plot_height_vh}vh', 'width': '100%'}),
+            html.Div(id='correlation-table-container', children=[
                     dash_table.DataTable(
                         id='correlation-table',
 
@@ -263,7 +251,7 @@ app.layout = dbc.Container([
                     {"name": "Hedge Ratio", "id": "hedge_ratio_volatility"}
                 ],
                 sort_action="native",
-                style_table={'height': '35vh', 'overflowY': 'auto'},
+                style_table={'height': f'{plot_height_vh}vh', 'width': '100%'},
                 style_data={
                     'border': '1px solid rgba(251, 234, 235, 0.5)'
                 },
@@ -286,18 +274,60 @@ app.layout = dbc.Container([
                 },
                 row_selectable='single',  
                 )
-            ]
-        )
-    ], width=6),
-
-    dbc.Col([
-        dcc.Graph(id='line-chart', style={'height': '35vh', 'width': '100%'}),
-        dcc.Graph(id='premium-discount-chart', style={'height': '35vh', 'width': '100%'}),
-    ], width=6),
+            ])
+        ], width=6),
+        dbc.Col([
+            dcc.Graph(id='line-chart', style={'height': f'{plot_height_vh}vh', 'width': '100%'}),
+            dcc.Graph(id='premium-discount-chart', style={'height': f'{plot_height_vh}vh', 'width': '100%'}),
+        ], width=6),
     ], align="stretch"),
-
     html.Div(id="selection-output")
 ], fluid=True)
+
+# Define the layout for the second page
+page_2_layout = html.Div([
+    html.H3('Work in progress')
+    # Add content for Page 2 here
+])
+
+# Define the layout for the third page
+page_3_layout = html.Div([
+    html.H3('Work in progress')
+    # Content for Page 3...
+])
+
+# Define the app layout with navigation
+app.layout = html.Div([
+    dbc.Navbar(
+        [
+            dbc.NavbarBrand(html.Img(src='/assets/logo.png', height="30px"), href="/"),
+            dbc.Container(
+                [
+                    dbc.Nav([
+                        dbc.NavLink("Closed-End Funds", href="/", className="nav-link"),
+                        dbc.NavLink("Preferred Stocks", href="/page-2", className="nav-link"),
+                        dbc.NavLink("Dividend Calendar", href="/page-3", className="nav-link")
+                    ], className="ml-auto", navbar=True)
+                ]
+            )
+        ],
+        className="navbar navbar-expand-lg navbar-dark bg-dark hidden-navbar"
+    ),
+    dcc.Location(id='url', refresh=False),
+    html.Div(id='page-content')
+])
+
+# Callback to switch between pages
+@app.callback(Output('page-content', 'children'),
+              [Input('url', 'pathname')])
+def display_page(pathname):
+    if pathname == '/page-2':
+        return page_2_layout
+    elif pathname == '/page-3':
+        return page_3_layout
+    else:
+        # Default to page 1
+        return page_1_layout
 
 @app.callback(
     [Output('scatter-plot', 'style'), 

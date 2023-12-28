@@ -157,3 +157,32 @@ body {
 .ag-filter-body-wrapper{
     background-color:#062025;    
 }
+
+.hidden-navbar {
+    transition: opacity 0.3s, transform 0.3s;
+    background-color: #041619 !important;
+    color: #FBEAEB !important;
+    opacity: 0; /* Navbar is hidden initially */
+    height: 50px; /* Adjust the height as needed */
+}
+
+.hidden-navbar:hover {
+    opacity: 1; /* Navbar becomes visible on hover */
+}
+
+.navbar-nav {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.navbar-nav .nav-link {
+    color: #FBEAEB !important;
+    font-size: 0.9em; /* Adjust font size as needed */
+}
+
+.navbar-brand {
+    height: 100%; /* Ensure the brand/logo takes full height of navbar */
+    display: flex;
+    align-items: center; /* Center the logo vertically */
+}
